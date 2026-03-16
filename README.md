@@ -1,0 +1,1 @@
+# pagorapido.sistecredito
